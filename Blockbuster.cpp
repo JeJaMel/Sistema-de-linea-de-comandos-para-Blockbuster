@@ -70,6 +70,7 @@ int main()
     char year[50];
     char price[50];
     int durationOption;
+    int movieIdToCheck;
     int LastID = GetLastMovieId("Movies.csv");
     movie oneMovie, twoMovie;
 
@@ -79,7 +80,7 @@ int main()
         ofstream createFile("rentedMovies.csv");
         if (createFile.is_open())
         {
-            createFile << "id;title;genre;duration;directorFirstName;directorLastName;price;release_date;rent_to;rent_on;status\n";
+            createFile << "id;movie;genre;duration;director;price;release_date;rent_to;rent_on;status\n";
             createFile.close();
         }
 
@@ -103,6 +104,8 @@ int main()
     bool running = true;
     bool movieFound;
     bool movieAlreadyRented;
+    bool movieFoundToCheck = false;
+
     while (running)
     {
         displayMenu();
@@ -191,8 +194,52 @@ int main()
             break;
 
         case 2:
-            // Implementar la lógica de consultar el estado de la película
+            cout << "Enter the ID of the movie you want to check: ";
+            cin >> movieIdToCheck;
+
+            ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+
+            for (int i = 0; i < catalogSize; i++)
+            {
+                if (catalog[i].id == movieIdToCheck)
+                {
+                    movieFoundToCheck = true;
+                    cout << "---------------------------------------------------------------------------" << endl;
+                    cout << "Movie Title: " << catalog[i].title;
+                    cout << "\nStatus: " << catalog[i].status;
+                    cout << "\nRented to: " << catalog[i].rent_to;
+                    cout << "\nRented on: " << catalog[i].rent_on;
+                    cout << "\n---------------------------------------------------------------------------" << endl;
+                    break;
+                }
+            }
+
+            if (!movieFoundToCheck)
+            {
+                ReadMovieData("Movies.csv", catalog, catalogSize);
+
+                for (int j = 0; j < catalogSize; j++)
+                {
+                    if (catalog[j].id == movieIdToCheck)
+                    {
+                        cout << "---------------------------------------------------------------------------" << endl;
+                        cout << "Movie Title: " << catalog[j].title;
+                        cout << "\nStatus: Available";
+                        cout << "\nRented to: -------" << catalog[j].rent_to;
+                        cout << "\nRented on: -------" << catalog[j].rent_on;
+                        cout << "\n---------------------------------------------------------------------------" << endl;
+                        break;
+                    }
+                }
+            }
+
+            else
+            {
+                cout << "Movie not found" << endl;
+            }
+
             break;
+
         case 3:
             movieFound = false;
             int foundIndex;
@@ -208,7 +255,7 @@ int main()
             {
                 if (catalog[i].id == movieId)
                 {
-                    cout << "The movie is already rented" << endl;
+                    cout << "The movie " << catalog[i].title << "is already rented" << endl;
                     movieAlreadyRented = true;
                     break;
                 }
@@ -257,18 +304,17 @@ int main()
             break;
 
         case 4:
-
             ReadMovieData("Movies.csv", catalog, catalogSize);
 
             oneMovie = getDataFromUser();
-
             oneMovie.id = LastID + 1;
 
             if (catalogSize < MaxCatalogSize)
             {
-
                 catalogSize++;
-                // WriteMovieData("Movies.csv", oneMovie);
+                catalog[catalogSize - 1] = oneMovie;
+
+                WriteMovieData("Movies.csv", oneMovie);
                 cout << "\nMovie added successfully!" << endl;
             }
             else
@@ -277,6 +323,7 @@ int main()
             }
 
             break;
+
         case 5:
             // Implementar la lógica de búsqueda de cliente
             break;
@@ -297,7 +344,7 @@ void displayMenu()
     cout << "\nPlease select an option below:(1-6)\n"
          << endl;
     cout << "1. Search a movie." << endl;
-    cout << "2. Consult status of the movie." << endl;
+    cout << "2. Check status of a movie." << endl;
     cout << "3. Rent a movie." << endl;
     cout << "4. Add a movie." << endl;
     cout << "5. Search a client." << endl;
