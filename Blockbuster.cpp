@@ -11,7 +11,7 @@ using namespace std;
 struct client
 {
     char account_name[50];
-    int cedula[50];
+    int cedula;
     char email[50];
     char country[50];
 };
@@ -41,7 +41,11 @@ bool isValidDate(const string &date);
 
 int GetLastMovieId(const string &filename);
 void ReadMovieData(const string &filename, movie catalog[], int &catalogSize);
-void WriteMovieData(const string &filename, const movie &m);
+
+void WriteMovieData(const string &filename, const movie &rentedMovie);
+void RentMovie(movie catalog[], int catalogSize, client &c);
+
+void WriteClientData(const string &filename, const client &c);
 
 void DisplayMovieGenre(const movie movies[], int size);
 void DisplayMovieDuration(const movie &singleMovie);
@@ -67,7 +71,24 @@ int main()
     char price[50];
     int durationOption;
     int LastID = GetLastMovieId("Movies.csv");
-    movie oneMovie;
+    movie oneMovie, twoMovie;
+
+    ifstream checkFile("rentedMovies.csv");
+    if (!checkFile.is_open())
+    {
+        ofstream createFile("rentedMovies.csv");
+        if (createFile.is_open())
+        {
+            createFile << "id;title;genre;duration;directorFirstName;directorLastName;price;release_date;rent_to;rent_on;status\n";
+            createFile.close();
+        }
+
+        else
+        {
+            cout << "Error creating 'rentedMovies.csv' file." << endl;
+            return 1;
+        }
+    }
 
     fstream Archive;
 
@@ -78,7 +99,10 @@ int main()
     string anykey1;
     cin >> anykey1;
 
+    int movieId;
     bool running = true;
+    bool movieFound;
+    bool movieAlreadyRented;
     while (running)
     {
         displayMenu();
@@ -170,8 +194,68 @@ int main()
             // Implementar la lógica de consultar el estado de la película
             break;
         case 3:
-            // Implementar la lógica de alquilar una película
+            movieFound = false;
+            int foundIndex;
+            foundIndex = -1;
+            client c;
+            movie rentedMovie;
+
+            cout << "Enter the ID of the movie you want to rent: ";
+            cin >> movieId;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+            for (int i = 0; i < catalogSize; i++)
+            {
+                if (catalog[i].id == movieId)
+                {
+                    cout << "The movie is already rented" << endl;
+                    movieAlreadyRented = true;
+                    break;
+                }
+            }
+
+            if (!movieAlreadyRented)
+            {
+
+                ReadMovieData("Movies.csv", catalog, catalogSize);
+                for (int i = 0; i < catalogSize; i++)
+                {
+                    if (catalog[i].id == movieId)
+                    {
+                        movieFound = true;
+                        rentedMovie = catalog[i];
+                        foundIndex = i;
+                        break;
+                    }
+                }
+
+                if (movieFound)
+                {
+                    cout << "Enter your account name: ";
+                    cin.getline(c.account_name, sizeof(c.account_name));
+
+                    cout << "Enter your cédula: ";
+                    cin >> c.cedula;
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+                    cout << "Enter your email: ";
+                    cin.getline(c.email, sizeof(c.email));
+
+                    cout << "Enter your country: ";
+                    cin.getline(c.country, sizeof(c.country));
+
+                    strcpy(catalog[foundIndex].status, "Rented");
+                    strcpy(catalog[foundIndex].rent_to, c.account_name);
+
+                    WriteMovieData("rentedMovies.csv", catalog[foundIndex]);
+
+                    cout << "The movie '" << catalog[foundIndex].title << "' has been rented to " << c.account_name << endl;
+                }
+
+                WriteClientData("clientData.bin", c);
+            }
             break;
+
         case 4:
 
             ReadMovieData("Movies.csv", catalog, catalogSize);
@@ -182,10 +266,9 @@ int main()
 
             if (catalogSize < MaxCatalogSize)
             {
-                catalog[catalogSize] = oneMovie;
-                catalogSize++;
 
-                WriteMovieData("Movies.csv", oneMovie);
+                catalogSize++;
+                // WriteMovieData("Movies.csv", oneMovie);
                 cout << "\nMovie added successfully!" << endl;
             }
             else
@@ -332,7 +415,12 @@ void ReadMovieData(const string &filename, movie catalog[], int &catalogSize)
     }
 }
 
-void WriteMovieData(const string &filename, const movie &m)
+// if (!movieFound)
+//{
+//   cout << "No se encontró ninguna película con el ID proporcionado." << endl;
+//}
+
+void WriteMovieData(const string &filename, const movie &rentedMovie)
 {
     ofstream Archive(filename, ios::app);
     if (!Archive.is_open())
@@ -340,12 +428,32 @@ void WriteMovieData(const string &filename, const movie &m)
         cout << "Unable to open the file" << endl;
         return;
     }
-    Archive.seekp(0, ios::end);
 
-    Archive << m.id << ";" << m.title << ";" << m.genre << ";" << m.duration << ";"
-            << m.directorFirstName << " " << m.directorLastName << ";"
-            << m.price << ";" << m.release_date << endl;
+    Archive << rentedMovie.id << ";"
+            << rentedMovie.title << ";"
+            << rentedMovie.genre << ";"
+            << rentedMovie.duration << ";"
+            << rentedMovie.directorFirstName << " " << rentedMovie.directorLastName << ";"
+            << rentedMovie.price << ";"
+            << rentedMovie.release_date << ";"
+            << rentedMovie.rent_to << ";"
+            << rentedMovie.rent_on << ";"
+            << rentedMovie.status << "\n";
+
     Archive.close();
+}
+
+void WriteClientData(const string &filename, const client &c)
+{
+    ofstream clientFile(filename, ios::binary | ios::app);
+    if (!clientFile.is_open())
+    {
+        cout << "Unable to open the file" << endl;
+        return;
+    }
+
+    clientFile.write(reinterpret_cast<const char *>(&c), sizeof(client));
+    clientFile.close();
 }
 
 bool isValidDate(const string &date)
