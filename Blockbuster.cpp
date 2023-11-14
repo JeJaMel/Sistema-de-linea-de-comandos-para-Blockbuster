@@ -22,25 +22,34 @@ struct movie
     char title[50];
     char genre[50];
     int duration;
-    char director[50];
-    char price[50];
+    char directorFirstName[50];
+    char directorLastName[50];
+    double price;
     char release_date[50];
     char rent_to[50];
     char rent_on[50];
     char status[50];
 };
+
+movie getDataFromUser();
+
 void merge(int arr[], int left[], int right[], int left_size, int right_size);
 void mergeSort(int arr[], int size);
 void displayMenu();
 void SortMovieData();
+bool isValidDate(const string &date);
 
+int GetLastMovieId(const string &filename);
 void ReadMovieData(const string &filename, movie catalog[], int &catalogSize);
+void WriteMovieData(const string &filename, const movie &m);
+
 void DisplayMovieGenre(const movie movies[], int size);
 void DisplayMovieDuration(const movie &singleMovie);
+void DisplayMovieDirector(const movie movies[], int size);
 
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre);
 void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int durationCategory);
-void SearchAndDisplayByDirector(const movie catalog[], int catalogSize, const char *userDirector);
+void SearchAndDisplayByDirector(const movie catalog[], int catalogSize, const char *userFirstName);
 void SearchAndDisplayByReleaseDate(const movie catalog[], int catalogSize, const char *userReleaseDate);
 void SearchAndDisplayById(const movie catalog[], int catalogSize, int user_id);
 
@@ -57,8 +66,13 @@ int main()
     char year[50];
     char price[50];
     int durationOption;
+    int LastID = GetLastMovieId("Movies.csv");
+    movie oneMovie;
 
-    cout << "\n ╠═════════════════════════════════╣ BLOCKBUSTER ╠════════════════════════════════╣" << endl;
+    fstream Archive;
+
+    cout
+        << "\n ╠═════════════════════════════════╣ BLOCKBUSTER ╠════════════════════════════════╣" << endl;
     cout << "       Welcome to Blockbuster technical terminal, press any key to continue"
          << endl;
     string anykey1;
@@ -121,10 +135,12 @@ int main()
                 ReadMovieData("Movies.csv", catalog, catalogSize);
 
                 cout << "Which director do you want to search?\n\n";
-                cout << "Enter director: ";
+                cout << "Enter director's first name: ";
                 cin >> director;
 
                 transform(director, director + strlen(director), director, ::tolower);
+
+                SearchAndDisplayByDirector(catalog, catalogSize, director);
 
                 break;
             case 4:
@@ -157,7 +173,26 @@ int main()
             // Implementar la lógica de alquilar una película
             break;
         case 4:
-            // Implementar la lógica de agregar una película
+
+            ReadMovieData("Movies.csv", catalog, catalogSize);
+
+            oneMovie = getDataFromUser();
+
+            oneMovie.id = LastID + 1;
+
+            if (catalogSize < MaxCatalogSize)
+            {
+                catalog[catalogSize] = oneMovie;
+                catalogSize++;
+
+                WriteMovieData("Movies.csv", oneMovie);
+                cout << "\nMovie added successfully!" << endl;
+            }
+            else
+            {
+                cout << "List is full" << endl;
+            }
+
             break;
         case 5:
             // Implementar la lógica de búsqueda de cliente
@@ -173,6 +208,7 @@ int main()
     }
     return 0;
 }
+
 void displayMenu()
 {
     cout << "\nPlease select an option below:(1-6)\n"
@@ -249,6 +285,22 @@ void mergeSort(int arr[], int size)
 
     merge(arr, left, right, mid, size - mid);
 }
+
+int GetLastMovieId(const string &filename)
+{
+    ifstream movieFile(filename);
+    string line;
+    int lastId = 0;
+
+    while (getline(movieFile, line))
+    {
+        stringstream ss(line);
+        ss >> lastId;
+    }
+
+    return lastId;
+}
+
 void ReadMovieData(const string &filename, movie catalog[], int &catalogSize)
 {
     ifstream movieFile(filename);
@@ -267,8 +319,10 @@ void ReadMovieData(const string &filename, movie catalog[], int &catalogSize)
         ss.getline(catalog[catalogSize].genre, sizeof(catalog[catalogSize].genre), ';');
         ss >> catalog[catalogSize].duration;
         ss.ignore();
-        ss.getline(catalog[catalogSize].director, sizeof(catalog[catalogSize].director), ';');
-        ss.getline(catalog[catalogSize].price, sizeof(catalog[catalogSize].price), ';');
+        ss.getline(catalog[catalogSize].directorFirstName, sizeof(catalog[catalogSize].directorFirstName), ' ');
+        ss.getline(catalog[catalogSize].directorLastName, sizeof(catalog[catalogSize].directorLastName), ';');
+        ss >> catalog[catalogSize].price;
+        ss.ignore();
         ss.getline(catalog[catalogSize].release_date, sizeof(catalog[catalogSize].release_date), ';');
         ss.getline(catalog[catalogSize].rent_to, sizeof(catalog[catalogSize].rent_to), ';');
         ss.getline(catalog[catalogSize].rent_on, sizeof(catalog[catalogSize].rent_on), ';');
@@ -278,13 +332,82 @@ void ReadMovieData(const string &filename, movie catalog[], int &catalogSize)
     }
 }
 
+void WriteMovieData(const string &filename, const movie &m)
+{
+    ofstream Archive(filename, ios::app);
+    if (!Archive.is_open())
+    {
+        cout << "Unable to open the file" << endl;
+        return;
+    }
+    Archive.seekp(0, ios::end);
+
+    Archive << m.id << ";" << m.title << ";" << m.genre << ";" << m.duration << ";"
+            << m.directorFirstName << " " << m.directorLastName << ";"
+            << m.price << ";" << m.release_date << endl;
+    Archive.close();
+}
+
+bool isValidDate(const string &date)
+{
+
+    if (date.length() != 10)
+    {
+        return false;
+    }
+
+    if (date[4] != '-' || date[7] != '-')
+    {
+        return false;
+    }
+
+    int year, month, day;
+    if (sscanf(date.c_str(), "%d-%d-%d", &year, &month, &day) != 3)
+    {
+        return false;
+    }
+
+    return (year >= 2022 && year <= 2023) &&
+           (month >= 1 && month <= 12) &&
+           (day >= 1 && day <= 31);
+}
+
+movie getDataFromUser()
+{
+    movie m;
+    cout << "\nEnter the movie title:" << endl;
+    cin >> m.title;
+    cout << "\nEnter the movie genre/genres (Ex:War|Action):" << endl;
+    cin >> m.genre;
+    cout << "\nEnter the movie duration:" << endl;
+    cin >> m.duration;
+    if (m.duration < 0)
+    {
+        cout << "Duration must be greater than 0" << endl;
+    }
+    cout << "\nEnter the movie director first name:" << endl;
+    cin >> m.directorFirstName;
+    cout << "\nEnter the movie director last name:" << endl;
+    cin >> m.directorLastName;
+    cout << "\nEnter the movie price:" << endl;
+    cin >> m.price;
+    cout << "\nEnter the movie release date(years 2022,2023 YYYY-MM-DD):" << endl;
+    cin >> m.release_date;
+    while (!isValidDate(m.release_date))
+    {
+        cout << "Invalid date format or out-of-range values. Please enter a valid date (YYYY-MM-DD):" << endl;
+        cin >> m.release_date;
+    }
+    return m;
+}
+
 void AllMovieInfo(const movie movies[], int size)
 {
     for (int i = 0; i < size; ++i)
     {
 
         cout << "ID: " << movies[i].id << ", Title: " << movies[i].title << ", Genre: " << movies[i].genre
-             << ", Duration: " << movies[i].duration << ", Director: " << movies[i].director << ", Price: " << movies[i].price
+             << ", Duration: " << movies[i].duration << ", Director: " << movies[i].directorFirstName << " " << movies[i].directorLastName << ", Price: " << movies[i].price
              << ", Release Date: " << movies[i].release_date << endl;
     }
 }
@@ -297,8 +420,17 @@ void DisplayMovieGenre(const movie movies[], int size)
 }
 
 void DisplayMovieDuration(const movie &singleMovie)
+
 {
     cout << "ID: " << singleMovie.id << ", Title: " << singleMovie.title << ", Duration: " << singleMovie.duration << endl;
+}
+
+void DisplayMovieDirector(const movie movies[], int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        cout << "ID: " << movies[i].id << ", Title: " << movies[i].title << ", Director: " << movies[i].directorFirstName << " " << movies[i].directorLastName << endl;
+    }
 }
 
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre)
@@ -371,5 +503,17 @@ void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int dura
     if (matchingMovies == 0)
     {
         cout << "No movies found with that duration category" << endl;
+    }
+}
+
+void SearchAndDisplayByDirector(const movie catalog[], int catalogSize, const char *userFirstName)
+{
+
+    for (int i = 0; i < catalogSize; i++)
+    {
+        if (strcmp(catalog[i].directorFirstName, userFirstName) == 0)
+        {
+            DisplayMovieDirector(&catalog[i], 1);
+        }
     }
 }
