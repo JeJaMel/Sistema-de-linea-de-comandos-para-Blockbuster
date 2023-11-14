@@ -10,8 +10,8 @@ using namespace std;
 
 struct client
 {
-    int account_name;
-    char cedula[50];
+    char account_name[50];
+    int cedula[50];
     char email[50];
     char country[50];
 };
@@ -21,7 +21,7 @@ struct movie
     int id;
     char title[50];
     char genre[50];
-    char duration[50];
+    int duration;
     char director[50];
     char price[50];
     char release_date[50];
@@ -33,9 +33,16 @@ void merge(int arr[], int left[], int right[], int left_size, int right_size);
 void mergeSort(int arr[], int size);
 void displayMenu();
 void SortMovieData();
+
 void ReadMovieData(const string &filename, movie catalog[], int &catalogSize);
-void DisplayMovie(const movie movies[], int size);
+void DisplayMovieGenre(const movie movies[], int size);
+void DisplayMovieDuration(const movie &singleMovie);
+
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre);
+void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int durationCategory);
+void SearchAndDisplayByDirector(const movie catalog[], int catalogSize, const char *userDirector);
+void SearchAndDisplayByReleaseDate(const movie catalog[], int catalogSize, const char *userReleaseDate);
+void SearchAndDisplayById(const movie catalog[], int catalogSize, int user_id);
 
 int main()
 {
@@ -43,6 +50,13 @@ int main()
     movie catalog[MaxCatalogSize];
     int catalogSize;
     int Selection;
+    char genre[50];
+    char movieGenre[50];
+    char duration;
+    char director[50];
+    char year[50];
+    char price[50];
+    int durationOption;
 
     cout << "\n ╠═════════════════════════════════╣ BLOCKBUSTER ╠════════════════════════════════╣" << endl;
     cout << "       Welcome to Blockbuster technical terminal, press any key to continue"
@@ -70,9 +84,6 @@ int main()
             cout << "Enter option: ";
             cin >> searchOption;
 
-            char genre[50];
-            char movieGenre[50];
-
             switch (searchOption)
             {
             case 1:
@@ -91,18 +102,45 @@ int main()
                 SearchAndDisplayByGenre(catalog, catalogSize, genre);
 
                 break;
-
-                break;
             case 2:
+
+                ReadMovieData("Movies.csv", catalog, catalogSize);
+
+                cout << "\nWhich duration category do you want to search?\n";
+                cout << "1. Short (less than 2 hours)\n";
+                cout << "2. Medium (2 to 3 hours)\n";
+                cout << "3. Long (more than 3 hours)\n";
+                cout << "Enter option: ";
+                cin >> durationOption;
+
+                SearchAndDisplayByDuration(catalog, catalogSize, durationOption);
 
                 break;
             case 3:
 
+                ReadMovieData("Movies.csv", catalog, catalogSize);
+
+                cout << "Which director do you want to search?\n\n";
+                cout << "Enter director: ";
+                cin >> director;
+
+                transform(director, director + strlen(director), director, ::tolower);
+
                 break;
             case 4:
 
+                ReadMovieData("Movies.csv", catalog, catalogSize);
+
+                cout << "Which year do you want to search? (2022-2023)\n\n";
+                cout << "Enter year: ";
+                cin >> year;
+
                 break;
             case 5:
+
+                ReadMovieData("Movies.csv", catalog, catalogSize);
+
+                cout << "Which price do you want to search?\n\n";
 
                 break;
             default:
@@ -135,7 +173,6 @@ int main()
     }
     return 0;
 }
-
 void displayMenu()
 {
     cout << "\nPlease select an option below:(1-6)\n"
@@ -212,12 +249,13 @@ void mergeSort(int arr[], int size)
 
     merge(arr, left, right, mid, size - mid);
 }
-
 void ReadMovieData(const string &filename, movie catalog[], int &catalogSize)
 {
     ifstream movieFile(filename);
     string line;
     catalogSize = 0;
+
+    getline(movieFile, line);
 
     while (getline(movieFile, line))
     {
@@ -240,12 +278,27 @@ void ReadMovieData(const string &filename, movie catalog[], int &catalogSize)
     }
 }
 
-void DisplayMovie(const movie movies[], int size)
+void AllMovieInfo(const movie movies[], int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+
+        cout << "ID: " << movies[i].id << ", Title: " << movies[i].title << ", Genre: " << movies[i].genre
+             << ", Duration: " << movies[i].duration << ", Director: " << movies[i].director << ", Price: " << movies[i].price
+             << ", Release Date: " << movies[i].release_date << endl;
+    }
+}
+void DisplayMovieGenre(const movie movies[], int size)
 {
     for (int i = 0; i < size; ++i)
     {
         cout << "ID: " << movies[i].id << ", Title: " << movies[i].title << ", Genre: " << movies[i].genre << endl;
     }
+}
+
+void DisplayMovieDuration(const movie &singleMovie)
+{
+    cout << "ID: " << singleMovie.id << ", Title: " << singleMovie.title << ", Duration: " << singleMovie.duration << endl;
 }
 
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre)
@@ -273,7 +326,7 @@ void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char 
 
         if (foundMatchingGenre)
         {
-            DisplayMovie(&catalog[i], 1);
+            DisplayMovieGenre(&catalog[i], 1);
             matchingMovies++;
         }
     }
@@ -281,5 +334,42 @@ void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char 
     if (matchingMovies == 0)
     {
         cout << "No movies found with that genre" << endl;
+    }
+}
+
+void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int durationCategory)
+{
+    int matchingMovies = 0;
+
+    for (int i = 0; i < catalogSize; i++)
+    {
+        bool foundMatchingDuration = false;
+
+        switch (durationCategory)
+        {
+        case 1: // Short
+            foundMatchingDuration = (catalog[i].duration > 0 && catalog[i].duration < 120);
+            break;
+        case 2: // Medium
+            foundMatchingDuration = (catalog[i].duration >= 120 && catalog[i].duration <= 180);
+            break;
+        case 3: // Long
+            foundMatchingDuration = (catalog[i].duration > 180);
+            break;
+        default:
+            cout << "Invalid duration category" << endl;
+            return;
+        }
+
+        if (foundMatchingDuration)
+        {
+            DisplayMovieDuration(catalog[i]);
+            matchingMovies++;
+        }
+    }
+
+    if (matchingMovies == 0)
+    {
+        cout << "No movies found with that duration category" << endl;
     }
 }
