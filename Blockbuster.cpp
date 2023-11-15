@@ -36,9 +36,9 @@ movie getDataFromUser();
 void merge(int arr[], int left[], int right[], int left_size, int right_size);
 void mergeSort(int arr[], int size);
 void displayMenu();
-void SortMovieData();
+void FilterMovieData();
 bool isValidDate(const string &date);
-
+void SortMovieData(movie catalog[], int catalogSize);
 int GetLastMovieId(const string &filename);
 void ReadMovieData(const string &filename, movie catalog[], int &catalogSize);
 
@@ -51,12 +51,14 @@ bool searchClientById(const string &filename, int targetId, client &foundClient)
 void DisplayMovieGenre(const movie movies[], int size);
 void DisplayMovieDuration(const movie &singleMovie);
 void DisplayMovieDirector(const movie movies[], int size);
+void DisplayMoviePrice(const movie movies[], int size);
 
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre);
 void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int durationCategory);
 void SearchAndDisplayByDirector(const movie catalog[], int catalogSize, const char *userFirstName);
 void SearchAndDisplayByReleaseDate(const movie catalog[], int catalogSize, const char *userReleaseDate);
 void SearchAndDisplayById(const movie catalog[], int catalogSize, int user_id);
+void SearchAndDisplayByPriceRange(movie catalog[], int catalogSize, double minPrice, double maxPrice);
 
 int main()
 {
@@ -185,12 +187,16 @@ int main()
 
                 break;
             case 5:
+                double minPrice, maxPrice;
+                cout << "Enter the minimum price: ";
+                cin >> minPrice;
+                cout << "Enter the maximum price: ";
+                cin >> maxPrice;
 
                 ReadMovieData("Movies.csv", catalog, catalogSize);
-
-                cout << "Which price do you want to search?\n\n";
-
+                SearchAndDisplayByPriceRange(catalog, catalogSize, minPrice, maxPrice);
                 break;
+
             default:
                 cout << "Invalid search option" << endl;
                 break;
@@ -375,15 +381,15 @@ void displayMenu()
     cout << "Select an option: ";
 }
 
-void SortMovieData(int sortOption)
+void FlterMovieData(int filterOption)
 {
-    cout << "\nHow do you want to sort the movies?\n\n";
-    cout << "1. Sort by price\n";
-    cout << "2. Sort by duration\n";
-    cout << "4. Sort by release date\n";
-    cout << "5. Sort by id\n";
+    cout << "\nHow do you want to filter the movies?\n\n";
+    cout << "1. filter by price\n";
+    cout << "2. filter by duration\n";
+    cout << "4. filter by release date\n";
+    cout << "5. filter by id\n";
     cout << "Select an option: ";
-    cin >> sortOption;
+    cin >> filterOption;
 }
 
 void merge(int arr[], int left[], int right[], int left_size, int right_size)
@@ -629,6 +635,14 @@ void DisplayMovieDirector(const movie movies[], int size)
     }
 }
 
+void DisplayMoviePrice(const movie movies[], int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        cout << "ID: " << movies[i].id << ", Title: " << movies[i].title << ", Price: " << movies[i].price << endl;
+    }
+}
+
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre)
 {
     int matchingMovies = 0;
@@ -711,5 +725,29 @@ void SearchAndDisplayByDirector(const movie catalog[], int catalogSize, const ch
         {
             DisplayMovieDirector(&catalog[i], 1);
         }
+    }
+}
+
+void SearchAndDisplayByPriceRange(movie catalog[], int catalogSize, double minPrice, double maxPrice)
+{
+    int matchingMovies = 0;
+    movie matchingMoviesArray[2000];
+
+    for (int i = 0; i < catalogSize; i++)
+    {
+        if (catalog[i].price >= minPrice && catalog[i].price <= maxPrice)
+        {
+            matchingMoviesArray[matchingMovies++] = catalog[i];
+        }
+    }
+
+    if (matchingMovies > 0)
+    {
+        // Display the movies within the price range
+        DisplayMoviePrice(matchingMoviesArray, matchingMovies);
+    }
+    else
+    {
+        cout << "No movies found within the specified price range" << endl;
     }
 }
