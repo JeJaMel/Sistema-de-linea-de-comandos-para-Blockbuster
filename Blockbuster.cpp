@@ -33,8 +33,10 @@ struct movie
 
 movie getDataFromUser();
 
-void merge(int arr[], int left[], int right[], int left_size, int right_size);
-void mergeSort(int arr[], int size);
+void mergeSort(movie arr[], int size, const char *sortBy, bool ascending = true);
+void merge(movie arr[], movie left[], movie right[], int left_size, int right_size, const char *sortBy, bool ascending);
+void mergeByReleaseDate(movie arr[], movie left[], movie right[], int left_size, int right_size, bool ascending);
+
 void displayMenu();
 void FilterMovieData();
 bool isValidDate(const string &date);
@@ -52,11 +54,13 @@ void DisplayMovieGenre(const movie movies[], int size);
 void DisplayMovieDuration(const movie &singleMovie);
 void DisplayMovieDirector(const movie movies[], int size);
 void DisplayMoviePrice(const movie movies[], int size);
+void DisplayMovieReleaseDate(const movie movies[], int size);
 
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre);
 void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int durationCategory);
 void SearchAndDisplayByDirector(const movie catalog[], int catalogSize, const char *userFirstName);
-void SearchAndDisplayByReleaseDate(const movie catalog[], int catalogSize, const char *userReleaseDate);
+void SearchAndDisplayByReleaseDate(movie catalog[], int catalogSize, const char *releaseYear);
+
 void SearchAndDisplayById(const movie catalog[], int catalogSize, int user_id);
 void SearchAndDisplayByPriceRange(movie catalog[], int catalogSize, double minPrice, double maxPrice);
 
@@ -177,15 +181,43 @@ int main()
                 SearchAndDisplayByDirector(catalog, catalogSize, director);
 
                 break;
+
             case 4:
+                int dateFilterOption;
+                cout << "\nSelect date filter option:\n";
+                cout << "1. Filter movies released in 2022\n";
+                cout << "2. Filter movies released in 2023\n";
+                cout << "3. Filter older movies\n";
+                cout << "4. Filter newer movies\n";
+                cout << "Enter option: ";
+                cin >> dateFilterOption;
 
                 ReadMovieData("Movies.csv", catalog, catalogSize);
 
-                cout << "Which year do you want to search? (2022-2023)\n\n";
-                cout << "Enter year: ";
-                cin >> year;
+                switch (dateFilterOption)
+                {
+                case 1:
+                    SearchAndDisplayByReleaseDate(catalog, catalogSize, "2022");
+                    break;
+                case 2:
+                    SearchAndDisplayByReleaseDate(catalog, catalogSize, "2023");
+                    break;
+                case 3:
 
+                    mergeSort(catalog, catalogSize, "release_date");
+                    DisplayMovieReleaseDate(catalog, catalogSize);
+                    break;
+                case 4:
+
+                    mergeSort(catalog, catalogSize, "release_date", false);
+                    DisplayMovieReleaseDate(catalog, catalogSize);
+                    break;
+                default:
+                    cout << "Invalid date filter option" << endl;
+                    break;
+                }
                 break;
+
             case 5:
                 double minPrice, maxPrice;
                 cout << "Enter the minimum price: ";
@@ -392,19 +424,36 @@ void FlterMovieData(int filterOption)
     cin >> filterOption;
 }
 
-void merge(int arr[], int left[], int right[], int left_size, int right_size)
+void merge(movie arr[], movie left[], movie right[], int left_size, int right_size, const char *sortBy, bool ascending)
 {
     int i = 0, j = 0, k = 0;
 
     while (i < left_size && j < right_size)
     {
-        if (left[i] <= right[j])
+        if (strcmp(sortBy, "release_date") == 0)
         {
-            arr[k++] = left[i++];
-        }
-        else
-        {
-            arr[k++] = right[j++];
+            if (ascending)
+            {
+                if (strcmp(left[i].release_date, right[j].release_date) <= 0)
+                {
+                    arr[k++] = left[i++];
+                }
+                else
+                {
+                    arr[k++] = right[j++];
+                }
+            }
+            else
+            {
+                if (strcmp(left[i].release_date, right[j].release_date) >= 0)
+                {
+                    arr[k++] = left[i++];
+                }
+                else
+                {
+                    arr[k++] = right[j++];
+                }
+            }
         }
     }
 
@@ -418,8 +467,7 @@ void merge(int arr[], int left[], int right[], int left_size, int right_size)
         arr[k++] = right[j++];
     }
 }
-
-void mergeSort(int arr[], int size)
+void mergeSort(movie arr[], int size, const char *sortBy, bool ascending)
 {
     if (size <= 1)
     {
@@ -427,8 +475,8 @@ void mergeSort(int arr[], int size)
     }
 
     int mid = size / 2;
-    int left[mid];
-    int right[size - mid];
+    movie *left = new movie[mid];
+    movie *right = new movie[size - mid];
 
     for (int i = 0; i < mid; i++)
     {
@@ -439,10 +487,20 @@ void mergeSort(int arr[], int size)
         right[i - mid] = arr[i];
     }
 
-    mergeSort(left, mid);
-    mergeSort(right, size - mid);
+    mergeSort(left, mid, sortBy, ascending);
+    mergeSort(right, size - mid, sortBy, ascending);
 
-    merge(arr, left, right, mid, size - mid);
+    if (strcmp(sortBy, "release_date") == 0)
+    {
+        mergeByReleaseDate(arr, left, right, mid, size - mid, ascending);
+    }
+    else
+    {
+        merge(arr, left, right, mid, size - mid, sortBy, ascending);
+    }
+
+    delete[] left;
+    delete[] right;
 }
 
 int GetLastMovieId(const string &filename)
@@ -643,6 +701,15 @@ void DisplayMoviePrice(const movie movies[], int size)
     }
 }
 
+void DisplayMovieReleaseDate(const movie movies[], int size)
+{
+
+    for (int i = 0; i < size; ++i)
+    {
+        cout << "ID: " << movies[i].id << ", Title: " << movies[i].title << ", Release Date: " << movies[i].release_date << endl;
+    }
+}
+
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre)
 {
     int matchingMovies = 0;
@@ -743,11 +810,76 @@ void SearchAndDisplayByPriceRange(movie catalog[], int catalogSize, double minPr
 
     if (matchingMovies > 0)
     {
-        // Display the movies within the price range
+
         DisplayMoviePrice(matchingMoviesArray, matchingMovies);
     }
     else
     {
         cout << "No movies found within the specified price range" << endl;
+    }
+}
+
+void mergeByReleaseDate(movie arr[], movie left[], movie right[], int left_size, int right_size, bool ascending)
+{
+    int i = 0, j = 0, k = 0;
+
+    while (i < left_size && j < right_size)
+    {
+        if (ascending)
+        {
+            if (strcmp(left[i].release_date, right[j].release_date) <= 0)
+            {
+                arr[k++] = left[i++];
+            }
+            else
+            {
+                arr[k++] = right[j++];
+            }
+        }
+        else
+        {
+            if (strcmp(left[i].release_date, right[j].release_date) >= 0)
+            {
+                arr[k++] = left[i++];
+            }
+            else
+            {
+                arr[k++] = right[j++];
+            }
+        }
+    }
+
+    while (i < left_size)
+    {
+        arr[k++] = left[i++];
+    }
+
+    while (j < right_size)
+    {
+        arr[k++] = right[j++];
+    }
+}
+
+void SearchAndDisplayByReleaseDate(movie catalog[], int catalogSize, const char *releaseYear)
+{
+    int matchingMovies = 0;
+    movie matchingMoviesArray[2000];
+
+    for (int i = 0; i < catalogSize; i++)
+    {
+        if (strstr(catalog[i].release_date, releaseYear) != nullptr)
+        {
+            matchingMoviesArray[matchingMovies++] = catalog[i];
+        }
+    }
+
+    if (matchingMovies > 0)
+    {
+
+        DisplayMovieReleaseDate(matchingMoviesArray, matchingMovies);
+    }
+    else
+    {
+        cout << "No movies released in the specified year" << endl;
     }
 }
