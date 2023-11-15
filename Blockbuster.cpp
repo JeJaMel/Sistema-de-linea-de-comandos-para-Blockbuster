@@ -46,6 +46,7 @@ void WriteMovieData(const string &filename, const movie &rentedMovie);
 void RentMovie(movie catalog[], int catalogSize, client &c);
 
 void WriteClientData(const string &filename, const client &c);
+bool searchClientById(const string &filename, int targetId, client &foundClient);
 
 void DisplayMovieGenre(const movie movies[], int size);
 void DisplayMovieDuration(const movie &singleMovie);
@@ -69,10 +70,13 @@ int main()
     char director[50];
     char year[50];
     char price[50];
+    int clientIdToSearch;
     int durationOption;
     int movieIdToCheck;
     int LastID = GetLastMovieId("Movies.csv");
     movie oneMovie, twoMovie;
+    string idOrName;
+    client foundClientById;
 
     ifstream checkFile("rentedMovies.csv");
     if (!checkFile.is_open())
@@ -105,6 +109,7 @@ int main()
     bool movieFound;
     bool movieAlreadyRented;
     bool movieFoundToCheck = false;
+    bool movieFoundToCheck2 = false;
 
     while (running)
     {
@@ -208,10 +213,11 @@ int main()
                     cout << "Movie Title: " << catalog[i].title;
                     cout << "\nStatus: " << catalog[i].status;
                     cout << "\nRented to: " << catalog[i].rent_to;
-                    cout << "\nRented on: " << catalog[i].rent_on;
+                    cout << "\nRented on: -------" << catalog[i].rent_on;
                     cout << "\n---------------------------------------------------------------------------" << endl;
                     break;
                 }
+                break;
             }
 
             if (!movieFoundToCheck)
@@ -222,6 +228,7 @@ int main()
                 {
                     if (catalog[j].id == movieIdToCheck)
                     {
+                        movieFoundToCheck2 = true;
                         cout << "---------------------------------------------------------------------------" << endl;
                         cout << "Movie Title: " << catalog[j].title;
                         cout << "\nStatus: Available";
@@ -233,11 +240,10 @@ int main()
                 }
             }
 
-            else
+            if (!movieFoundToCheck && !movieFoundToCheck2)
             {
                 cout << "Movie not found" << endl;
             }
-
             break;
 
         case 3:
@@ -325,7 +331,26 @@ int main()
             break;
 
         case 5:
-            // Implementar la lógica de búsqueda de cliente
+
+            cout << "\nSearch client by id" << endl;
+            cout << "Enter client id: ";
+            cin >> clientIdToSearch;
+
+            if (searchClientById("clientData.bin", clientIdToSearch, foundClientById))
+            {
+                cout << "\nClient found by ID:" << endl;
+                cout << "---------------------------------------------------------------------------" << endl;
+                cout << "Account Name: " << foundClientById.account_name << endl;
+                cout << "Cedula: " << foundClientById.cedula << endl;
+                cout << "Email: " << foundClientById.email << endl;
+                cout << "Country: " << foundClientById.country << endl;
+                cout << "---------------------------------------------------------------------------" << endl;
+            }
+            else
+            {
+                cout << "Client not found by ID" << endl;
+            }
+
             break;
         case 6:
             cout << "Thank you for using Blockbuster. Goodbye!" << endl;
@@ -336,9 +361,7 @@ int main()
             break;
         }
     }
-    return 0;
 }
-
 void displayMenu()
 {
     cout << "\nPlease select an option below:(1-6)\n"
@@ -462,11 +485,6 @@ void ReadMovieData(const string &filename, movie catalog[], int &catalogSize)
     }
 }
 
-// if (!movieFound)
-//{
-//   cout << "No se encontró ninguna película con el ID proporcionado." << endl;
-//}
-
 void WriteMovieData(const string &filename, const movie &rentedMovie)
 {
     ofstream Archive(filename, ios::app);
@@ -501,6 +519,29 @@ void WriteClientData(const string &filename, const client &c)
 
     clientFile.write(reinterpret_cast<const char *>(&c), sizeof(client));
     clientFile.close();
+}
+
+bool searchClientById(const string &filename, int targetId, client &foundClient)
+{
+    ifstream clientFile(filename, ios::binary);
+
+    if (!clientFile.is_open())
+    {
+        cout << "Unable to open the file" << endl;
+        return false;
+    }
+
+    while (clientFile.read(reinterpret_cast<char *>(&foundClient), sizeof(client)))
+    {
+        if (foundClient.cedula == targetId)
+        {
+            clientFile.close();
+            return true;
+        }
+    }
+
+    clientFile.close();
+    return false;
 }
 
 bool isValidDate(const string &date)
