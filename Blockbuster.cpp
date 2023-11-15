@@ -50,6 +50,8 @@ void RentMovie(movie catalog[], int catalogSize, client &c);
 void WriteClientData(const string &filename, const client &c);
 bool searchClientById(const string &filename, int targetId, client &foundClient);
 
+void SearchAndDisplayByDirectorFirstName(const movie catalog[], int catalogSize, const char *directorFirstName);
+
 void DisplayMovieGenre(const movie movies[], int size);
 void DisplayMovieDuration(const movie &singleMovie);
 void DisplayMovieDirector(const movie movies[], int size);
@@ -168,17 +170,15 @@ int main()
                 SearchAndDisplayByDuration(catalog, catalogSize, durationOption);
 
                 break;
-            case 3:
 
+            case 3:
                 ReadMovieData("Movies.csv", catalog, catalogSize);
 
-                cout << "Which director do you want to search?\n\n";
+                cout << "Which director's first name do you want to search?\n\n";
                 cout << "Enter director's first name: ";
                 cin >> director;
 
-                transform(director, director + strlen(director), director, ::tolower);
-
-                SearchAndDisplayByDirector(catalog, catalogSize, director);
+                SearchAndDisplayByDirectorFirstName(catalog, catalogSize, director);
 
                 break;
 
@@ -881,5 +881,29 @@ void SearchAndDisplayByReleaseDate(movie catalog[], int catalogSize, const char 
     else
     {
         cout << "No movies released in the specified year" << endl;
+    }
+}
+
+void SearchAndDisplayByDirectorFirstName(const movie catalog[], int catalogSize, const char *directorFirstName)
+{
+    bool foundMatchingDirector = false;
+
+    char directorFirstNameCapitalized[50];
+    strcpy(directorFirstNameCapitalized, directorFirstName);
+    directorFirstNameCapitalized[0] = toupper(directorFirstNameCapitalized[0]);
+
+    for (int i = 0; i < catalogSize; i++)
+    {
+
+        if (strcmp(catalog[i].directorFirstName, directorFirstNameCapitalized) == 0)
+        {
+            DisplayMovieDirector(&catalog[i], 1);
+            foundMatchingDirector = true;
+        }
+    }
+
+    if (!foundMatchingDirector)
+    {
+        cout << "No movies found directed by " << directorFirstName << endl;
     }
 }
