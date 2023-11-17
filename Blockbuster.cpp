@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <cstring>
+#include <string>
 
 using namespace std;
 
@@ -633,9 +634,14 @@ bool isValidDate(const string &date)
 
 movie getDataFromUser()
 {
+    string title;
+
     movie m;
     cout << "\nEnter the movie title:" << endl;
-    cin >> m.title;
+    cin.ignore();
+    getline(cin, title);
+    for (int i = 0; i < 50 && i < title.length(); i++)
+        m.title[i] = title[i];
     cout << "\nEnter the movie genre/genres (Ex:War|Action):" << endl;
     cin >> m.genre;
     cout << "\nEnter the movie duration:" << endl;
