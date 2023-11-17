@@ -60,7 +60,6 @@ void DisplayMovieReleaseDate(const movie movies[], int size);
 
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre);
 void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int durationCategory);
-void SearchAndDisplayByDirector(const movie catalog[], int catalogSize, const char *userFirstName);
 void SearchAndDisplayByReleaseDate(movie catalog[], int catalogSize, const char *releaseYear);
 
 void SearchAndDisplayById(const movie catalog[], int catalogSize, int user_id);
@@ -780,18 +779,6 @@ void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int dura
     if (matchingMovies == 0)
     {
         cout << "No movies found with that duration category" << endl;
-    }
-}
-
-void SearchAndDisplayByDirector(const movie catalog[], int catalogSize, const char *userFirstName)
-{
-
-    for (int i = 0; i < catalogSize; i++)
-    {
-        if (strcmp(catalog[i].directorFirstName, userFirstName) == 0)
-        {
-            DisplayMovieDirector(&catalog[i], 1);
-        }
     }
 }
 
