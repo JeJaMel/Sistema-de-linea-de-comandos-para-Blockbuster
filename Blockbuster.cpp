@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <string>
+#include <time.h>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ struct client
     char account_name[50];
     int cedula;
     char email[50];
-    char country[50];
+    int PhoneNumber;
 };
 
 struct movie
@@ -50,8 +51,8 @@ void RentMovie(movie catalog[], int catalogSize, client &c);
 
 void WriteClientData(const string &filename, const client &c);
 bool searchClientById(const string &filename, int targetId, client &foundClient);
-
-void SearchAndDisplayByDirectorFirstName(const movie catalog[], int catalogSize, const char *directorFirstName);
+bool searchClientByEmail(const string &filename, const string &targetEmail, client &foundClient);
+bool searchClientByPhoneNumber(const string &filename, int targetPhoneNumber, client &foundClient);
 
 void DisplayMovieGenre(const movie movies[], int size);
 void DisplayMovieDuration(const movie &singleMovie);
@@ -62,9 +63,9 @@ void DisplayMovieReleaseDate(const movie movies[], int size);
 void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char *userGenre);
 void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int durationCategory);
 void SearchAndDisplayByReleaseDate(movie catalog[], int catalogSize, const char *releaseYear);
-
 void SearchAndDisplayById(const movie catalog[], int catalogSize, int user_id);
 void SearchAndDisplayByPriceRange(movie catalog[], int catalogSize, double minPrice, double maxPrice);
+void SearchAndDisplayByDirectorFirstName(const movie catalog[], int catalogSize, const char *directorFirstName);
 
 int main()
 {
@@ -79,12 +80,22 @@ int main()
     char year[50];
     char price[50];
     int clientIdToSearch;
+    string clientMailToSearch;
+    int clientPhoneNumberToSearch;
     int durationOption;
     int movieIdToCheck;
     int LastID = GetLastMovieId("Movies.csv");
     movie oneMovie, twoMovie;
     string idOrName;
     client foundClientById;
+    client foundClientByMail;
+    client foundClientByPhoneNumber;
+
+    time_t now = time(0);
+    struct tm *ltm = localtime(&now);
+
+    char actualDate[11];
+    strftime(actualDate, sizeof(actualDate), "%d-%m-%Y", ltm);
 
     ifstream checkFile("rentedMovies.csv");
     if (!checkFile.is_open())
@@ -251,11 +262,10 @@ int main()
                     cout << "Movie Title: " << catalog[i].title;
                     cout << "\nStatus: " << catalog[i].status;
                     cout << "\nRented to: " << catalog[i].rent_to;
-                    cout << "\nRented on: -------" << catalog[i].rent_on;
+                    cout << "\nRented on: " << catalog[i].rent_on;
                     cout << "\n---------------------------------------------------------------------------" << endl;
                     break;
                 }
-                break;
             }
 
             if (!movieFoundToCheck)
@@ -299,7 +309,7 @@ int main()
             {
                 if (catalog[i].id == movieId)
                 {
-                    cout << "The movie " << catalog[i].title << "is already rented" << endl;
+                    cout << "The movie " << catalog[i].title << " is already rented" << endl;
                     movieAlreadyRented = true;
                     break;
                 }
@@ -332,15 +342,17 @@ int main()
                     cout << "Enter your email: ";
                     cin.getline(c.email, sizeof(c.email));
 
-                    cout << "Enter your country: ";
-                    cin.getline(c.country, sizeof(c.country));
+                    cout << "Enter your Phone number: ";
+                    cin >> c.PhoneNumber;
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
                     strcpy(catalog[foundIndex].status, "Rented");
+                    strcpy(catalog[foundIndex].rent_on, actualDate);
                     strcpy(catalog[foundIndex].rent_to, c.account_name);
 
                     WriteMovieData("rentedMovies.csv", catalog[foundIndex]);
 
-                    cout << "The movie '" << catalog[foundIndex].title << "' has been rented to " << c.account_name << endl;
+                    cout << "\nThe movie '" << catalog[foundIndex].title << "' has been rented to " << c.account_name << endl;
                 }
 
                 WriteClientData("clientData.bin", c);
@@ -369,25 +381,80 @@ int main()
             break;
 
         case 5:
+            int selectSearchMethod;
+            cout << "\n1. Search client by id" << endl;
+            cout << "2. Search client by email" << endl;
+            cout << "3. Search client by Phone number" << endl;
+            cin >> selectSearchMethod;
 
-            cout << "\nSearch client by id" << endl;
-            cout << "Enter client id: ";
-            cin >> clientIdToSearch;
-
-            if (searchClientById("clientData.bin", clientIdToSearch, foundClientById))
+            if (selectSearchMethod == 1)
             {
-                cout << "\nClient found by ID:" << endl;
-                cout << "---------------------------------------------------------------------------" << endl;
-                cout << "Account Name: " << foundClientById.account_name << endl;
-                cout << "Cedula: " << foundClientById.cedula << endl;
-                cout << "Email: " << foundClientById.email << endl;
-                cout << "Country: " << foundClientById.country << endl;
-                cout << "---------------------------------------------------------------------------" << endl;
+
+                cout << "Enter client id: ";
+                cin >> clientIdToSearch;
+
+                if (searchClientById("clientData.bin", clientIdToSearch, foundClientById))
+                {
+                    cout << "\nClient found by ID:" << endl;
+                    cout << "---------------------------------------------------------------------------" << endl;
+                    cout << "Account Name: " << foundClientById.account_name << endl;
+                    cout << "Cedula: " << foundClientById.cedula << endl;
+                    cout << "Email: " << foundClientById.email << endl;
+                    cout << "Phone Number: " << foundClientById.PhoneNumber << endl;
+                    cout << "---------------------------------------------------------------------------" << endl;
+                }
+                else
+                {
+                    cout << "Client not found by ID" << endl;
+                }
+            }
+
+            else if (selectSearchMethod == 2)
+            {
+
+                cout << "Enter client email: ";
+                cin >> clientMailToSearch;
+
+                if (searchClientByEmail("clientData.bin", clientMailToSearch, foundClientByMail))
+                {
+
+                    cout << "\nClient found by Mail:" << endl;
+                    cout << "---------------------------------------------------------------------------" << endl;
+                    cout << "Account Name: " << foundClientById.account_name << endl;
+                    cout << "Cedula: " << foundClientById.cedula << endl;
+                    cout << "Email: " << foundClientById.email << endl;
+                    cout << "Phone Number: " << foundClientById.PhoneNumber << endl;
+                    cout << "---------------------------------------------------------------------------" << endl;
+                }
+                else
+                {
+                    cout << "Client not found by Mail" << endl;
+                }
+            }
+
+            else if (selectSearchMethod == 3)
+            {
+
+                cout << "Enter client Phone number: ";
+                cin >> clientPhoneNumberToSearch;
+
+                if (searchClientByPhoneNumber("clientData.bin", clientPhoneNumberToSearch, foundClientByPhoneNumber))
+                {
+                    cout << "\nClient found by Phone number:" << endl;
+                    cout << "---------------------------------------------------------------------------" << endl;
+                    cout << "Account Name: " << foundClientById.account_name << endl;
+                    cout << "Cedula: " << foundClientById.cedula << endl;
+                    cout << "Email: " << foundClientById.email << endl;
+                    cout << "Phone Number: " << foundClientById.PhoneNumber << endl;
+                    cout << "---------------------------------------------------------------------------" << endl;
+                }
+                else
+                {
+                    cout << "Client not found by Phone number" << endl;
+                }
             }
             else
-            {
-                cout << "Client not found by ID" << endl;
-            }
+                cout << "Invalid option" << endl;
 
             break;
         case 6:
@@ -598,6 +665,52 @@ bool searchClientById(const string &filename, int targetId, client &foundClient)
     while (clientFile.read(reinterpret_cast<char *>(&foundClient), sizeof(client)))
     {
         if (foundClient.cedula == targetId)
+        {
+            clientFile.close();
+            return true;
+        }
+    }
+
+    clientFile.close();
+    return false;
+}
+
+bool searchClientByEmail(const string &filename, const string &targetEmail, client &foundClient)
+{
+    ifstream clientFile(filename, ios::binary);
+
+    if (!clientFile.is_open())
+    {
+        cout << "Unable to open the file" << endl;
+        return false;
+    }
+
+    while (clientFile.read(reinterpret_cast<char *>(&foundClient), sizeof(client)))
+    {
+        if (strcmp(foundClient.email, targetEmail.c_str()) == 0)
+        {
+            clientFile.close();
+            return true;
+        }
+    }
+
+    clientFile.close();
+    return false;
+}
+
+bool searchClientByPhoneNumber(const string &filename, int targetPhoneNumber, client &foundClient)
+{
+    ifstream clientFile(filename, ios::binary);
+
+    if (!clientFile.is_open())
+    {
+        cout << "Unable to open the file" << endl;
+        return false;
+    }
+
+    while (clientFile.read(reinterpret_cast<char *>(&foundClient), sizeof(client)))
+    {
+        if (foundClient.PhoneNumber == targetPhoneNumber)
         {
             clientFile.close();
             return true;
