@@ -56,6 +56,8 @@ bool searchClientById(const string &filename, int targetId, client &foundClient)
 bool searchClientByEmail(const string &filename, const string &targetEmail, client &foundClient);
 bool searchClientByPhoneNumber(const string &filename, int targetPhoneNumber, client &foundClient);
 
+void DisplayAvailableMovies(const movie catalog[], int catalogSize);
+void DisplayRentedMovies(const movie movies[], int size);
 void DisplayMovieGenre(const movie movies[], int size);
 void DisplayMovieDuration(const movie &singleMovie);
 void DisplayMovieDirector(const movie movies[], int size);
@@ -154,6 +156,7 @@ int main()
             cout << "3. Search by director\n";
             cout << "4. Search by release date\n";
             cout << "5. search by price\n";
+            cout << "6. Search by rented status\n";
             cout << "Enter option: ";
             cin >> searchOption;
 
@@ -248,6 +251,27 @@ int main()
                 SearchAndDisplayByPriceRange(catalog, catalogSize, minPrice, maxPrice);
                 break;
 
+            case 6:
+
+                int Option;
+                cout << "\n1. search available movies\n";
+                cout << "2. search rented movies\n ";
+                cout << "Enter option: ";
+                cin >> Option;
+
+                if (Option == 1)
+                {
+                    ReadMovieData("Movies.csv", catalog, catalogSize);
+                    DisplayAvailableMovies(catalog, catalogSize);
+                }
+                else if (Option == 2)
+                {
+                    ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+                    DisplayRentedMovies(catalog, catalogSize);
+                }
+
+                break;
+
             default:
                 cout << "Invalid search option" << endl;
                 break;
@@ -340,6 +364,7 @@ int main()
 
                 if (movieFound)
                 {
+
                     cout << "Enter your account name: ";
                     cin.getline(c.account_name, sizeof(c.account_name));
 
@@ -860,14 +885,13 @@ movie getDataFromUser()
     return m;
 }
 
-void AllMovieInfo(const movie movies[], int size)
+void DisplayRentedMovies(const movie movies[], int size)
 {
     for (int i = 0; i < size; ++i)
     {
 
-        cout << "ID: " << movies[i].id << ", Title: " << movies[i].title << ", Genre: " << movies[i].genre
-             << ", Duration: " << movies[i].duration << ", Director: " << movies[i].directorFirstName << " " << movies[i].directorLastName << ", Price: " << movies[i].price
-             << ", Release Date: " << movies[i].release_date << endl;
+        cout << "ID: " << movies[i].id << ", Title: " << movies[i].title << ", Price: " << movies[i].price
+             << ", Rented to: " << movies[i].rent_to << ", renten on: " << movies[i].rent_on << endl;
     }
 }
 void DisplayMovieGenre(const movie movies[], int size)
@@ -1147,4 +1171,35 @@ void deleteMovie(const string &filename, int movieId)
     file.close();
 
     cout << "Película eliminada exitosamente." << endl;
+}
+
+void DisplayAvailableMovies(const movie catalog[], int catalogSize)
+{
+    // Leer las películas rentadas
+    movie rentedMovies[2000];
+    int rentedMoviesSize = 0;
+    ReadMovieData("rentedMovies.csv", rentedMovies, rentedMoviesSize);
+
+    // Mostrar solo las películas disponibles
+    cout << "\nAvailable Movies:\n";
+    for (int i = 0; i < catalogSize; i++)
+    {
+        bool isRented = false;
+
+        // Verificar si la película está en la lista de películas rentadas
+        for (int j = 0; j < rentedMoviesSize; j++)
+        {
+            if (catalog[i].id == rentedMovies[j].id)
+            {
+                isRented = true;
+                break;
+            }
+        }
+
+        // Mostrar solo las películas no rentadas
+        if (!isRented)
+        {
+            cout << "ID: " << catalog[i].id << ", Title: " << catalog[i].title << ", Status: Available\n";
+        }
+    }
 }
