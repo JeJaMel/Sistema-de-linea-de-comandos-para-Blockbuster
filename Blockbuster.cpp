@@ -7,6 +7,7 @@
 #include <cstring>
 #include <string>
 #include <time.h>
+#include <cstdio>
 
 using namespace std;
 
@@ -48,6 +49,7 @@ void ReadMovieData(const string &filename, movie catalog[], int &catalogSize);
 
 void WriteMovieData(const string &filename, const movie &rentedMovie);
 void RentMovie(movie catalog[], int catalogSize, client &c);
+void deleteMovie(const string &filename, int movieId);
 
 void WriteClientData(const string &filename, const client &c);
 bool searchClientById(const string &filename, int targetId, client &foundClient);
@@ -85,11 +87,16 @@ int main()
     int durationOption;
     int movieIdToCheck;
     int LastID = GetLastMovieId("Movies.csv");
+
     movie oneMovie, twoMovie;
     string idOrName;
     client foundClientById;
     client foundClientByMail;
     client foundClientByPhoneNumber;
+
+    int movieIdToDelete;
+
+    string confirm;
 
     time_t now = time(0);
     struct tm *ltm = localtime(&now);
@@ -129,6 +136,7 @@ int main()
     bool movieAlreadyRented;
     bool movieFoundToCheck = false;
     bool movieFoundToCheck2 = false;
+    bool movieFound2 = false;
 
     while (running)
     {
@@ -458,15 +466,86 @@ int main()
 
             break;
         case 6:
-            cout << "Thank you for using Blockbuster. Goodbye!" << endl;
-            running = false;
+
+            ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+            cout << "Enter the ID of the movie you want to return: ";
+            cin >> movieIdToDelete;
+
+            for (int i = 0; i < catalogSize; i++)
+            {
+                if (movieIdToDelete == catalog[i].id)
+                {
+                    movieFound2 = true;
+
+                    cout << "Are you sure you want to return this movie? (Y/N): ";
+                    cin >> confirm;
+
+                    if (confirm == "Y" || confirm == "y")
+                    {
+                        deleteMovie("rentedMovies.csv", movieIdToDelete);
+                        cout << "Movie returned successfully!" << endl;
+                    }
+                    else
+                    {
+                        cout << "Operation cancelled." << endl;
+                    }
+
+                    break;
+                }
+            }
+
+            if (!movieFound2)
+            {
+                cout << "Movie not found." << endl;
+            }
+
             break;
-        default:
-            cout << "Please select a valid option" << endl;
+
+        case 7:
+
+            ReadMovieData("movies.csv", catalog, catalogSize);
+            cout << "Enter the ID of the movie you want to Delete: ";
+            cin >> movieIdToDelete;
+
+            for (int i = 0; i < catalogSize; i++)
+            {
+                if (movieIdToDelete == catalog[i].id)
+                {
+                    movieFound2 = true;
+
+                    cout << "Are you sure you want to Delete this movie?, this action cannot be undone... (Y/N): ";
+                    cin >> confirm;
+
+                    if (confirm == "Y" || confirm == "y")
+                    {
+                        deleteMovie("movies.csv", movieIdToDelete);
+                        cout << "Movie Deleted successfully!" << endl;
+                    }
+                    else
+                    {
+                        cout << "Operation cancelled." << endl;
+                    }
+
+                    break;
+                }
+            }
+
+            if (!movieFound2)
+            {
+                cout << "Movie not found." << endl;
+            }
+
+            break;
+
+        case 8:
+
+            return 0;
+
             break;
         }
     }
 }
+
 void displayMenu()
 {
     cout << "\nPlease select an option below:(1-6)\n"
@@ -476,7 +555,9 @@ void displayMenu()
     cout << "3. Rent a movie." << endl;
     cout << "4. Add a movie." << endl;
     cout << "5. Search a client." << endl;
-    cout << "6. Exit." << endl;
+    cout << "6. Return a movie." << endl;
+    cout << "7. Delete a movie." << endl;
+    cout << "8. Exit." << endl;
     cout << "Select an option: ";
 }
 
@@ -1012,4 +1093,58 @@ void SearchAndDisplayByDirectorFirstName(const movie catalog[], int catalogSize,
     {
         cout << "No movies found directed by " << directorFirstName << endl;
     }
+}
+
+void deleteMovie(const string &filename, int movieId)
+{
+    fstream file(filename, ios::in | ios::out);
+
+    if (!file.is_open())
+    {
+        cerr << "Error al abrir el archivo" << endl;
+        return;
+    }
+
+    string line;
+    movie movie;
+    stringstream updatedContent;
+
+    while (getline(file, line))
+    {
+        stringstream ss(line);
+        ss >> movie.id;
+        ss.ignore();
+        ss.getline(movie.title, sizeof(movie.title), ';');
+        ss.getline(movie.genre, sizeof(movie.genre), ';');
+        ss >> movie.duration;
+        ss.ignore();
+        ss.getline(movie.directorFirstName, sizeof(movie.directorFirstName), ' ');
+        ss.getline(movie.directorLastName, sizeof(movie.directorLastName), ';');
+        ss >> movie.price;
+        ss.ignore();
+        ss.getline(movie.release_date, sizeof(movie.release_date), ';');
+        ss.getline(movie.rent_to, sizeof(movie.rent_to), ';');
+        ss.getline(movie.rent_on, sizeof(movie.rent_on), ';');
+        ss.getline(movie.status, sizeof(movie.status));
+
+        if (movie.id != movieId)
+        {
+            updatedContent << line << '\n';
+        }
+    }
+
+    file.close();
+
+    file.open(filename, ios::out | ios::trunc);
+    if (!file.is_open())
+    {
+        cerr << "Error al abrir el archivo para escritura" << endl;
+        return;
+    }
+
+    file << updatedContent.str();
+
+    file.close();
+
+    cout << "Película eliminada exitosamente." << endl;
 }
