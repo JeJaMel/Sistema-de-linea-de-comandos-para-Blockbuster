@@ -50,11 +50,13 @@ void ReadMovieData(const string &filename, movie catalog[], int &catalogSize);
 void WriteMovieData(const string &filename, const movie &rentedMovie);
 void RentMovie(movie catalog[], int catalogSize, client &c);
 void deleteMovie(const string &filename, int movieId);
+bool deleteClient(const string &filename, int targetId);
 
 void WriteClientData(const string &filename, const client &c);
 bool searchClientById(const string &filename, int targetId, client &foundClient);
 bool searchClientByEmail(const string &filename, const string &targetEmail, client &foundClient);
 bool searchClientByPhoneNumber(const string &filename, int targetPhoneNumber, client &foundClient);
+bool searchClientByAccountName(const string &filename, const string &targetAccountName, client &foundClient);
 
 void DisplayAvailableMovies(const movie catalog[], int catalogSize);
 void DisplayRentedMovies(const movie movies[], int size);
@@ -75,6 +77,7 @@ int main()
 {
     const int MaxCatalogSize = 2000;
     movie catalog[MaxCatalogSize];
+
     int catalogSize;
     int Selection;
     char genre[50];
@@ -564,6 +567,53 @@ int main()
 
         case 8:
 
+            int targetClientId;
+            cout << "\nEnter the cedula of the client you want to delete: ";
+            cin >> targetClientId;
+
+            client targetClient;
+            if (searchClientById("clientData.bin", targetClientId, targetClient))
+            {
+                ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+
+                bool hasRentedMovies = false;
+                string targetAccountName = targetClient.account_name;
+
+                for (int i = 0; i < catalogSize; i++)
+                {
+                    client rentedClient;
+                    if (searchClientByAccountName("clientData.bin", catalog[i].rent_to, rentedClient))
+                    {
+                        if (rentedClient.cedula == targetClientId)
+                        {
+                            cout << "Client has a rented movie. Please return the movie before deleting the client." << endl;
+                            hasRentedMovies = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hasRentedMovies)
+                {
+
+                    if (deleteClient("clientData.bin", targetClientId))
+                    {
+                        cout << "Client deleted successfully!" << endl;
+                    }
+                    else
+                    {
+                        cout << "Error deleting client." << endl;
+                    }
+                }
+            }
+            else
+            {
+                cout << "Client not found." << endl;
+            }
+            break;
+
+        case 9:
+
             return 0;
 
             break;
@@ -582,7 +632,8 @@ void displayMenu()
     cout << "5. Search a client." << endl;
     cout << "6. Return a movie." << endl;
     cout << "7. Delete a movie." << endl;
-    cout << "8. Exit." << endl;
+    cout << "8. Delete a client." << endl;
+    cout << "9. Exit." << endl;
     cout << "Select an option: ";
 }
 
@@ -1175,18 +1226,16 @@ void deleteMovie(const string &filename, int movieId)
 
 void DisplayAvailableMovies(const movie catalog[], int catalogSize)
 {
-    // Leer las películas rentadas
+
     movie rentedMovies[2000];
     int rentedMoviesSize = 0;
     ReadMovieData("rentedMovies.csv", rentedMovies, rentedMoviesSize);
 
-    // Mostrar solo las películas disponibles
     cout << "\nAvailable Movies:\n";
     for (int i = 0; i < catalogSize; i++)
     {
         bool isRented = false;
 
-        // Verificar si la película está en la lista de películas rentadas
         for (int j = 0; j < rentedMoviesSize; j++)
         {
             if (catalog[i].id == rentedMovies[j].id)
@@ -1196,10 +1245,71 @@ void DisplayAvailableMovies(const movie catalog[], int catalogSize)
             }
         }
 
-        // Mostrar solo las películas no rentadas
         if (!isRented)
         {
             cout << "ID: " << catalog[i].id << ", Title: " << catalog[i].title << ", Status: Available\n";
         }
     }
+}
+
+bool deleteClient(const string &filename, int targetId)
+{
+    fstream file(filename, ios::in | ios::out | ios::binary);
+
+    if (!file.is_open())
+    {
+        cerr << "Error opening the file" << endl;
+        return false;
+    }
+
+    client c;
+    stringstream updatedContent;
+
+    while (file.read(reinterpret_cast<char *>(&c), sizeof(client)))
+    {
+        if (c.cedula != targetId)
+        {
+
+            updatedContent.write(reinterpret_cast<const char *>(&c), sizeof(client));
+        }
+    }
+
+    file.close();
+
+    file.open(filename, ios::out | ios::trunc | ios::binary);
+    if (!file.is_open())
+    {
+        cerr << "Error opening the file for writing" << endl;
+        return false;
+    }
+
+    file.write(updatedContent.str().c_str(), updatedContent.str().size());
+
+    file.close();
+
+    cout << "Client deleted successfully!" << endl;
+    return true;
+}
+
+bool searchClientByAccountName(const string &filename, const string &targetAccountName, client &foundClient)
+{
+    ifstream clientFile(filename, ios::binary);
+
+    if (!clientFile.is_open())
+    {
+        cout << "Unable to open the file" << endl;
+        return false;
+    }
+
+    while (clientFile.read(reinterpret_cast<char *>(&foundClient), sizeof(client)))
+    {
+        if (strcmp(foundClient.account_name, targetAccountName.c_str()) == 0)
+        {
+            clientFile.close();
+            return true;
+        }
+    }
+
+    clientFile.close();
+    return false;
 }
