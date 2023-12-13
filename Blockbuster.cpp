@@ -57,6 +57,7 @@ bool searchClientById(const string &filename, int targetId, client &foundClient)
 bool searchClientByEmail(const string &filename, const string &targetEmail, client &foundClient);
 bool searchClientByPhoneNumber(const string &filename, int targetPhoneNumber, client &foundClient);
 bool searchClientByAccountName(const string &filename, const string &targetAccountName, client &foundClient);
+bool isClientMovieRented(const string &clientFilename, const string &rentedFilename, int targetCedula);
 
 void DisplayAvailableMovies(const movie catalog[], int catalogSize);
 void DisplayRentedMovies(const movie movies[], int size);
@@ -330,70 +331,91 @@ int main()
             break;
 
         case 3:
+        {
+            bool exitLoop = false;
             movieFound = false;
-            int foundIndex;
-            foundIndex = -1;
+            int foundIndex = -1;
             client c;
             movie rentedMovie;
 
-            cout << "Enter the ID of the movie you want to rent: ";
-            cin >> movieId;
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            ReadMovieData("rentedMovies.csv", catalog, catalogSize);
-            for (int i = 0; i < catalogSize; i++)
+            do
             {
-                if (catalog[i].id == movieId)
-                {
-                    cout << "The movie " << catalog[i].title << " is already rented" << endl;
-                    movieAlreadyRented = true;
-                    break;
-                }
-            }
+                cout << "Enter your account name: ";
+                cin.ignore();
+                cin.getline(c.account_name, sizeof(c.account_name));
 
-            if (!movieAlreadyRented)
-            {
-
-                ReadMovieData("Movies.csv", catalog, catalogSize);
+                ReadMovieData("rentedMovies.csv", catalog, catalogSize);
                 for (int i = 0; i < catalogSize; i++)
                 {
-                    if (catalog[i].id == movieId)
+                    if (strcmp(catalog[i].rent_to, c.account_name) == 0)
                     {
-                        movieFound = true;
-                        rentedMovie = catalog[i];
-                        foundIndex = i;
+                        cout << "You already have the movie '" << catalog[i].title << "'. Please return it before renting another one." << endl;
+                        exitLoop = true;
                         break;
                     }
                 }
 
-                if (movieFound)
+                if (!exitLoop)
                 {
-
-                    cout << "Enter your account name: ";
-                    cin.getline(c.account_name, sizeof(c.account_name));
-
-                    cout << "Enter your cédula: ";
-                    cin >> c.cedula;
+                    cout << "Enter the ID of the movie you want to rent: ";
+                    cin >> movieId;
                     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-                    cout << "Enter your email: ";
-                    cin.getline(c.email, sizeof(c.email));
+                    ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+                    for (int i = 0; i < catalogSize; i++)
+                    {
+                        if (catalog[i].id == movieId)
+                        {
+                            cout << "The movie " << catalog[i].title << "is already rented" << endl;
+                            movieAlreadyRented = true;
+                            exitLoop = true;
+                            break;
+                        }
+                    }
 
-                    cout << "Enter your Phone number: ";
-                    cin >> c.PhoneNumber;
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    if (!movieAlreadyRented)
+                    {
+                        ReadMovieData("Movies.csv", catalog, catalogSize);
+                        for (int i = 0; i < catalogSize; i++)
+                        {
+                            if (catalog[i].id == movieId)
+                            {
+                                movieFound = true;
+                                rentedMovie = catalog[i];
+                                foundIndex = i;
+                                break;
+                            }
+                        }
 
-                    strcpy(catalog[foundIndex].status, "Rented");
-                    strcpy(catalog[foundIndex].rent_on, actualDate);
-                    strcpy(catalog[foundIndex].rent_to, c.account_name);
+                        if (movieFound)
+                        {
+                            cout << "Enter your cédula: ";
+                            cin >> c.cedula;
+                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-                    WriteMovieData("rentedMovies.csv", catalog[foundIndex]);
+                            cout << "Enter your email: ";
+                            cin.getline(c.email, sizeof(c.email));
 
-                    cout << "\nThe movie '" << catalog[foundIndex].title << "' has been rented to " << c.account_name << endl;
+                            cout << "Enter your Phone number: ";
+                            cin >> c.PhoneNumber;
+                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+                            strcpy(catalog[foundIndex].status, "Rented");
+                            strcpy(catalog[foundIndex].rent_to, c.account_name);
+
+                            WriteMovieData("rentedMovies.csv", catalog[foundIndex]);
+
+                            cout << "The movie '" << catalog[foundIndex].title << "' has been rented to " << c.account_name << endl;
+                        }
+
+                        WriteClientData("clientData.bin", c);
+                        exitLoop = true;
+                    }
                 }
+            } while (!exitLoop);
 
-                WriteClientData("clientData.bin", c);
-            }
             break;
+        }
 
         case 4:
             ReadMovieData("Movies.csv", catalog, catalogSize);
@@ -1220,8 +1242,6 @@ void deleteMovie(const string &filename, int movieId)
     file << updatedContent.str();
 
     file.close();
-
-    cout << "Película eliminada exitosamente." << endl;
 }
 
 void DisplayAvailableMovies(const movie catalog[], int catalogSize)
