@@ -96,6 +96,7 @@ int main()
 
     movie oneMovie, twoMovie;
     string idOrName;
+
     client foundClientById;
     client foundClientByMail;
     client foundClientByPhoneNumber;
@@ -143,6 +144,8 @@ int main()
     bool movieFoundToCheck = false;
     bool movieFoundToCheck2 = false;
     bool movieFound2 = false;
+    bool exitLoop;
+    int foundIndex;
 
     while (running)
     {
@@ -331,15 +334,17 @@ int main()
             break;
 
         case 3:
-        {
-            bool exitLoop = false;
-            movieFound = false;
-            int foundIndex = -1;
+
+            movieAlreadyRented = false;
+            int movieId;
+            foundIndex = -1;
             client c;
             movie rentedMovie;
 
             do
             {
+                exitLoop = false;
+
                 cout << "Enter your account name: ";
                 cin.ignore();
                 cin.getline(c.account_name, sizeof(c.account_name));
@@ -366,9 +371,8 @@ int main()
                     {
                         if (catalog[i].id == movieId)
                         {
-                            cout << "The movie " << catalog[i].title << "is already rented" << endl;
+                            cout << "The movie " << catalog[i].title << " is already rented" << endl;
                             movieAlreadyRented = true;
-                            exitLoop = true;
                             break;
                         }
                     }
@@ -380,9 +384,9 @@ int main()
                         {
                             if (catalog[i].id == movieId)
                             {
-                                movieFound = true;
                                 rentedMovie = catalog[i];
                                 foundIndex = i;
+                                movieFound = true;
                                 break;
                             }
                         }
@@ -401,21 +405,20 @@ int main()
                             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
                             strcpy(catalog[foundIndex].status, "Rented");
+                            strcpy(catalog[foundIndex].rent_on, actualDate);
                             strcpy(catalog[foundIndex].rent_to, c.account_name);
 
                             WriteMovieData("rentedMovies.csv", catalog[foundIndex]);
 
                             cout << "The movie '" << catalog[foundIndex].title << "' has been rented to " << c.account_name << endl;
+                            WriteClientData("clientData.bin", c);
                         }
-
-                        WriteClientData("clientData.bin", c);
                         exitLoop = true;
                     }
                 }
-            } while (!exitLoop);
+            } while (!movieAlreadyRented && !exitLoop);
 
             break;
-        }
 
         case 4:
             ReadMovieData("Movies.csv", catalog, catalogSize);
@@ -513,41 +516,6 @@ int main()
             }
             else
                 cout << "Invalid option" << endl;
-
-            break;
-        case 6:
-
-            ReadMovieData("rentedMovies.csv", catalog, catalogSize);
-            cout << "Enter the ID of the movie you want to return: ";
-            cin >> movieIdToDelete;
-
-            for (int i = 0; i < catalogSize; i++)
-            {
-                if (movieIdToDelete == catalog[i].id)
-                {
-                    movieFound2 = true;
-
-                    cout << "Are you sure you want to return this movie? (Y/N): ";
-                    cin >> confirm;
-
-                    if (confirm == "Y" || confirm == "y")
-                    {
-                        deleteMovie("rentedMovies.csv", movieIdToDelete);
-                        cout << "Movie returned successfully!" << endl;
-                    }
-                    else
-                    {
-                        cout << "Operation cancelled." << endl;
-                    }
-
-                    break;
-                }
-            }
-
-            if (!movieFound2)
-            {
-                cout << "Movie not found." << endl;
-            }
 
             break;
 
