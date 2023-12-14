@@ -463,7 +463,20 @@ int main()
                     cout << "Email: " << foundClientById.email << endl;
                     cout << "Phone Number: " << foundClientById.PhoneNumber << endl;
                     cout << "---------------------------------------------------------------------------" << endl;
+                    cout << "History:\n";
+                    ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+                    bool clientFound = false;
+
+                    for (int i = 0; i < catalogSize; i++)
+                    {
+                        if (strcmp(foundClientById.account_name, catalog[i].rent_to) == 0)
+                        {
+                            clientFound = true;
+                            cout << "Movie: " << catalog[i].title << " rented on: " << catalog[i].rent_on << endl;
+                        }
+                    }
                 }
+
                 else
                 {
                     cout << "Client not found by ID" << endl;
@@ -486,6 +499,18 @@ int main()
                     cout << "Email: " << foundClientById.email << endl;
                     cout << "Phone Number: " << foundClientById.PhoneNumber << endl;
                     cout << "---------------------------------------------------------------------------" << endl;
+                    cout << "History:\n";
+                    ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+                    bool clientFound = false;
+
+                    for (int i = 0; i < catalogSize; i++)
+                    {
+                        if (strcmp(foundClientById.account_name, catalog[i].rent_to) == 0)
+                        {
+                            clientFound = true;
+                            cout << "Movie: " << catalog[i].title << " rented on: " << catalog[i].rent_on << endl;
+                        }
+                    }
                 }
                 else
                 {
@@ -508,6 +533,18 @@ int main()
                     cout << "Email: " << foundClientById.email << endl;
                     cout << "Phone Number: " << foundClientById.PhoneNumber << endl;
                     cout << "---------------------------------------------------------------------------" << endl;
+                    cout << "History:\n";
+                    ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+                    bool clientFound = false;
+
+                    for (int i = 0; i < catalogSize; i++)
+                    {
+                        if (strcmp(foundClientById.account_name, catalog[i].rent_to) == 0)
+                        {
+                            clientFound = true;
+                            cout << "Movie: " << catalog[i].title << " rented on: " << catalog[i].rent_on << endl;
+                        }
+                    }
                 }
                 else
                 {
@@ -516,6 +553,41 @@ int main()
             }
             else
                 cout << "Invalid option" << endl;
+
+            break;
+
+        case 6:
+            ReadMovieData("rentedMovies.csv", catalog, catalogSize);
+            cout << "Enter the ID of the movie you want to return: ";
+            cin >> movieIdToDelete;
+
+            for (int i = 0; i < catalogSize; i++)
+            {
+                if (movieIdToDelete == catalog[i].id)
+                {
+                    movieFound2 = true;
+
+                    cout << "Are you sure you want to return this movie? (Y/N): ";
+                    cin >> confirm;
+
+                    if (confirm == "Y" || confirm == "y")
+                    {
+                        deleteMovie("rentedMovies.csv", movieIdToDelete);
+                        cout << "Movie returned successfully!" << endl;
+                    }
+                    else
+                    {
+                        cout << "Operation cancelled." << endl;
+                    }
+
+                    break;
+                }
+            }
+
+            if (!movieFound2)
+            {
+                cout << "Movie not found." << endl;
+            }
 
             break;
 
