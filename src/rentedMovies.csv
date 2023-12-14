@@ -1,0 +1,4 @@
+id;movie;genre;duration;director;price;release_date;rent_to;rent_on;status
+900;Romantics Anonymous (Les émotifs anonymes);Comedy|Romance;137;Randolf Gotch;43.7;2023-05-04;jejamel;13-12-2023;Rented
+500;Underworld;Action|Fantasy|Horror;209;Murdoch Skally;139.29;2023-10-20;marco;13-12-2023;Rented
+32;12 Storeys (Shier lou);Comedy|Drama;204;Arlan Manville;129.38;2023-10-21;jejas;14-12-2023;Rented
