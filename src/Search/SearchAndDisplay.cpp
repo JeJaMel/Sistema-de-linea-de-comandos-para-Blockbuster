@@ -1,6 +1,7 @@
 #include "SearchAndDisplay.h"
 #include "Movies.h"
 #include "mergeSort.h"
+
 void DisplayAvailableMovies(const movie catalog[], int catalogSize)
 {
 
@@ -38,6 +39,7 @@ void DisplayRentedMovies(const movie movies[], int size)
              << ", Rented to: " << movies[i].rent_to << ", renten on: " << movies[i].rent_on << endl;
     }
 }
+
 void DisplayMovieGenre(const movie movies[], int size)
 {
     for (int i = 0; i < size; ++i)
@@ -109,7 +111,9 @@ void SearchAndDisplayByGenre(const movie catalog[], int catalogSize, const char 
 
     if (matchingMovies == 0)
     {
-        cout << "No movies found with that genre" << endl;
+        SetColor(12);
+        cout << "\nNo movies found with that genre" << endl;
+        SetColor(7);
     }
 }
 
@@ -133,7 +137,10 @@ void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int dura
             foundMatchingDuration = (catalog[i].duration > 180);
             break;
         default:
-            cout << "Invalid duration category" << endl;
+            SetColor(12);
+            cout << "\nInvalid duration category" << endl;
+            SetColor(7);
+
             return;
         }
 
@@ -146,7 +153,9 @@ void SearchAndDisplayByDuration(const movie catalog[], int catalogSize, int dura
 
     if (matchingMovies == 0)
     {
-        cout << "No movies found with that duration category" << endl;
+        SetColor(12);
+        cout << "\nNo movies found with that duration category" << endl;
+        SetColor(7);
     }
 }
 
@@ -170,7 +179,7 @@ void SearchAndDisplayByPriceRange(movie catalog[], int catalogSize, double minPr
     }
     else
     {
-        cout << "No movies found within the specified price range" << endl;
+        cout << "\nNo movies found within the specified price range" << endl;
     }
 }
 
@@ -194,7 +203,9 @@ void SearchAndDisplayByReleaseDate(movie catalog[], int catalogSize, const char 
     }
     else
     {
-        cout << "No movies released in the specified year" << endl;
+        SetColor(12);
+        cout << "\nNo movies released in the specified year" << endl;
+        SetColor(7);
     }
 }
 
@@ -218,7 +229,9 @@ void SearchAndDisplayByDirectorFirstName(const movie catalog[], int catalogSize,
 
     if (!foundMatchingDirector)
     {
-        cout << "No movies found directed by " << directorFirstName << endl;
+        SetColor(12);
+        cout << "\nNo movies found directed by " << directorFirstName << endl;
+        SetColor(7);
     }
 }
 
@@ -228,6 +241,8 @@ void searchMovieCase(movie catalog[], int &catalogSize)
     char genre[50];
     int durationOption;
     char director[50];
+
+    system("cls");
 
     cout << "\nSelect search option:\n";
     cout << "1. Search by genre\n";
@@ -244,6 +259,8 @@ void searchMovieCase(movie catalog[], int &catalogSize)
     case 1:
         ReadMovieData("src/Movies.csv", catalog, catalogSize);
 
+        system("cls");
+
         cout << "\nWhich genre do you want to search?\n\n";
         cout << "|Action| |Adventure| |Animation| |Children| |Comedy| |Crime| \n";
         cout << "|Documentary| |Drama|  |Fantasy| |Film-Noir| |Horror| |musical|\n";
@@ -254,10 +271,19 @@ void searchMovieCase(movie catalog[], int &catalogSize)
         transform(genre, genre + strlen(genre), genre, ::tolower);
 
         SearchAndDisplayByGenre(catalog, catalogSize, genre);
+
+        SetColor(8);
+        cout << "press any key to continue...";
+        SetColor(7);
+        getch();
+        system("cls");
+
         break;
 
     case 2:
         ReadMovieData("src/Movies.csv", catalog, catalogSize);
+
+        system("cls");
 
         cout << "\nWhich duration category do you want to search?\n";
         cout << "1. Short (less than 2 hours)\n";
@@ -267,20 +293,39 @@ void searchMovieCase(movie catalog[], int &catalogSize)
         cin >> durationOption;
 
         SearchAndDisplayByDuration(catalog, catalogSize, durationOption);
+
+        SetColor(8);
+        cout << "press any key to continue...";
+        SetColor(7);
+        getch();
+        system("cls");
+
         break;
 
     case 3:
         ReadMovieData("src/Movies.csv", catalog, catalogSize);
+
+        system("cls");
 
         cout << "Which director's first name do you want to search?\n\n";
         cout << "Enter director's first name: ";
         cin >> director;
 
         SearchAndDisplayByDirectorFirstName(catalog, catalogSize, director);
+
+        SetColor(8);
+        cout << "press any key to continue...";
+        SetColor(7);
+        getch();
+        system("cls");
+
         break;
 
     case 4:
         int dateFilterOption;
+
+        system("cls");
+
         cout << "\nSelect date filter option:\n";
         cout << "1. Filter movies released in 2022\n";
         cout << "2. Filter movies released in 2023\n";
@@ -294,57 +339,132 @@ void searchMovieCase(movie catalog[], int &catalogSize)
         switch (dateFilterOption)
         {
         case 1:
+
+            system("cls");
+
             SearchAndDisplayByReleaseDate(catalog, catalogSize, "2022");
+
+            SetColor(8);
+            cout << "press any key to continue...";
+            SetColor(7);
+
+            getch();
+            system("cls");
+
             break;
         case 2:
+
+            system("cls");
+
             SearchAndDisplayByReleaseDate(catalog, catalogSize, "2023");
+
+            SetColor(8);
+            cout << "press any key to continue...";
+            SetColor(7);
+
+            getch();
+            system("cls");
+
             break;
         case 3:
+
+            system("cls");
+
             mergeSort(catalog, catalogSize, "release_date");
             DisplayMovieReleaseDate(catalog, catalogSize);
+
+            SetColor(8);
+            cout << "press any key to continue...";
+            SetColor(7);
+            getch();
+            system("cls");
+
             break;
         case 4:
+
+            system("cls");
+
             mergeSort(catalog, catalogSize, "release_date", false);
             DisplayMovieReleaseDate(catalog, catalogSize);
+
+            SetColor(8);
+            cout << "press any key to continue...";
+            SetColor(7);
+            getch();
+            system("cls");
+
             break;
         default:
-            cout << "Invalid date filter option" << endl;
+            SetColor(12);
+            cout << "\nInvalid date filter option" << endl;
+            SetColor(7);
             break;
         }
         break;
 
     case 5:
+
+        system("cls");
+
         double minPrice, maxPrice;
         cout << "Enter the minimum price: ";
         cin >> minPrice;
         cout << "Enter the maximum price: ";
         cin >> maxPrice;
 
+        system("cls");
+
         ReadMovieData("src/Movies.csv", catalog, catalogSize);
         SearchAndDisplayByPriceRange(catalog, catalogSize, minPrice, maxPrice);
+
+        SetColor(8);
+        cout << "press any key to continue...";
+        SetColor(7);
+        getch();
+        system("cls");
+
         break;
 
     case 6:
         int Option;
+
+        system("cls");
+
         cout << "\n1. search available movies\n";
         cout << "2. search rented movies\n ";
         cout << "Enter option: ";
         cin >> Option;
 
+        system("cls");
+
         if (Option == 1)
         {
             ReadMovieData("src/Movies.csv", catalog, catalogSize);
             DisplayAvailableMovies(catalog, catalogSize);
+
+            SetColor(8);
+            cout << "press any key to continue...";
+            SetColor(7);
+            getch();
+            system("cls");
         }
         else if (Option == 2)
         {
             ReadMovieData("src/rentedMovies.csv", catalog, catalogSize);
             DisplayRentedMovies(catalog, catalogSize);
+
+            SetColor(8);
+            cout << "press any key to continue...";
+            SetColor(7);
+            getch();
+            system("cls");
         }
         break;
 
     default:
-        cout << "Invalid search option" << endl;
+        SetColor(12);
+        cout << "\nInvalid search option" << endl;
+        SetColor(7);
         break;
     }
 }

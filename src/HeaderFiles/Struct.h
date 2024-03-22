@@ -10,6 +10,8 @@
 #include <string>
 #include <time.h>
 #include <cstdio>
+#include <conio.h>
+#include <windows.h>
 
 using namespace std;
 
@@ -41,3 +43,7 @@ const int MaxCatalogSize = 2000;
 void displayMenu();
 void FilterMovieData();
 void ReadMovieData(const string &filename, movie catalog[], int &catalogSize);
+void gotoxy(int x, int y);
+void SetColor(int ForgC);
+void SetColorAndBackground(int ForgC, int BackC);
+void cuadro(int x1, int y1, int x2, int y2);

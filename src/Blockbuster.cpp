@@ -31,13 +31,14 @@ int main()
     }
 
     fstream Archive;
+    system("cls");
 
-    cout
-        << "\n ======================================== BLOCKBUSTER ========================================" << endl;
-    cout << "       Welcome to Blockbuster technical terminal, press any key to continue"
-         << endl;
-    string anykey1;
-    cin >> anykey1;
+    SetColor(14);
+    cuadro(0, 0, 76, 4);
+    gotoxy(4, 2);
+    printf("Welcome to Blockbuster technical terminal, press any key to continue\n\n\n");
+    SetColor(7);
+    getch();
 
     bool running = true;
 

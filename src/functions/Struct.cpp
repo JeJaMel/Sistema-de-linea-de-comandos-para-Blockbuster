@@ -57,3 +57,59 @@ void ReadMovieData(const string &filename, movie catalog[], int &catalogSize)
         catalogSize++;
     }
 }
+
+void gotoxy(int x, int y)
+{
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+void SetColor(int ForgC)
+{
+    WORD wColor;
+
+    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+    if (GetConsoleScreenBufferInfo(hStdOut, &csbi))
+    {
+        wColor = (csbi.wAttributes & 0xF0) + (ForgC & 0x0F);
+        SetConsoleTextAttribute(hStdOut, wColor);
+    }
+}
+
+void SetColorAndBackground(int ForgC, int BackC)
+{
+    WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
+}
+
+void cuadro(int x1, int y1, int x2, int y2)
+{
+    for (int i = x1; i < x2; i++)
+    {
+        gotoxy(i, y1);
+        cout << char(205);
+        gotoxy(i, y2);
+        cout << char(205);
+    }
+
+    for (int i = y1; i < y2; i++)
+    {
+        gotoxy(x1, i);
+        cout << char(186);
+        gotoxy(x2, i);
+        cout << char(186);
+    }
+
+    gotoxy(x1, y1);
+    cout << char(201);
+    gotoxy(x1, y2);
+    cout << char(200);
+    gotoxy(x2, y1);
+    cout << char(187);
+    gotoxy(x2, y2);
+    cout << char(188);
+}
