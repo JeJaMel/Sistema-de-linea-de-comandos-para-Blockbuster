@@ -1,5 +1,25 @@
 #include "Struct.h"
 
+bool createRentedMoviesFile()
+{
+    std::ifstream checkFile("src/rentedMovies.csv");
+    if (!checkFile.is_open())
+    {
+        std::ofstream createFile("src/rentedMovies.csv");
+        if (createFile.is_open())
+        {
+            createFile << "id;movie;genre;duration;director;price;release_date;rent_to;rent_on;status\n";
+            createFile.close();
+        }
+        else
+        {
+            std::cout << "Error creating 'rentedMovies.csv' file." << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
 void displayMenu()
 {
     cout << "\nPlease select an option below:(1-6)\n"
@@ -112,4 +132,24 @@ void cuadro(int x1, int y1, int x2, int y2)
     cout << char(187);
     gotoxy(x2, y2);
     cout << char(188);
+}
+
+void color(int color)
+{
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
+void printMenu(int highlight)
+{
+    string menu[9] = {"1. Search Movie", "2. Check Movie", "3. Rent Movie", "4. Add Movie", "5. Search Client", "6. Return Movie", "7. Delete Movie", "8. Delete Client", "9. Exit"};
+    int colors[9] = {7, 7, 7, 7, 7, 7, 7, 7, 7};
+
+    colors[highlight] = 12; // Highlight the selected menu item
+
+    for (int i = 0; i < 9; i++)
+    {
+        gotoxy(10, 5 + i);
+        color(colors[i]);
+        cout << menu[i];
+    }
 }

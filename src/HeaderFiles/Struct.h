@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cstring>
 #include <string>
+#include <sstream>
 #include <time.h>
 #include <cstdio>
 #include <conio.h>
@@ -40,10 +41,13 @@ struct movie
 
 const int MaxCatalogSize = 2000;
 
+bool createRentedMoviesFile();
 void displayMenu();
 void FilterMovieData();
 void ReadMovieData(const string &filename, movie catalog[], int &catalogSize);
 void gotoxy(int x, int y);
 void SetColor(int ForgC);
+void color(int color);
 void SetColorAndBackground(int ForgC, int BackC);
 void cuadro(int x1, int y1, int x2, int y2);
+void printMenu(int highlight);

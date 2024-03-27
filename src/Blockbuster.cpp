@@ -7,30 +7,16 @@
 movie catalog[MaxCatalogSize];
 int main()
 {
-
     int catalogSize;
     int Selection;
 
     int LastID = GetLastMovieId("src/Movies.csv");
 
-    ifstream checkFile("src/rentedMovies.csv");
-    if (!checkFile.is_open())
+    if (!createRentedMoviesFile())
     {
-        ofstream createFile("src/rentedMovies.csv");
-        if (createFile.is_open())
-        {
-            createFile << "id;movie;genre;duration;director;price;release_date;rent_to;rent_on;status\n";
-            createFile.close();
-        }
-
-        else
-        {
-            cout << "Error creating 'rentedMovies.csv' file." << endl;
-            return 1;
-        }
+        return 1;
     }
 
-    fstream Archive;
     system("cls");
 
     SetColor(14);
@@ -40,42 +26,60 @@ int main()
     SetColor(7);
     getch();
 
-    bool running = true;
+    int counter = 0;
+    char key;
 
-    while (running)
+    printMenu(counter); // Print the initial menu
+
+    while (true)
     {
-        displayMenu();
-        cin >> Selection;
+        key = _getch();
 
-        switch (Selection)
+        if (key == 72 && counter > 0) // Up arrow key
         {
-        case 1:
-            searchMovieCase(catalog, catalogSize);
-            break;
-        case 2:
-            checkMovieCase(catalog, catalogSize);
-            break;
-        case 3:
-            rentMovieCase(catalog, catalogSize);
-            break;
-        case 4:
-            addMovieCase(catalog, catalogSize, LastID);
-            break;
-        case 5:
-            searchClientCase(catalog, catalogSize);
-            break;
-        case 6:
-            returnMovieCase(catalog, catalogSize);
-            break;
-        case 7:
-            deleteMovieCase(catalog, catalogSize);
-            break;
-        case 8:
-            deleteClientCase(catalog, catalogSize);
-            break;
-        case 9:
-            return 0;
-            break;
+            counter--;
         }
+        else if (key == 80 && counter < 8) // Down arrow key
+        {
+            counter++;
+        }
+        else if (key == '\r') // Enter key
+        {
+            system("cls");
+            switch (counter)
+            {
+            case 0:
+                searchMovieCase(catalog, catalogSize);
+                break;
+            case 1:
+                checkMovieCase(catalog, catalogSize);
+                break;
+            case 2:
+                rentMovieCase(catalog, catalogSize);
+                break;
+            case 3:
+                addMovieCase(catalog, catalogSize, LastID);
+                break;
+            case 4:
+                searchClientCase(catalog, catalogSize);
+                break;
+            case 5:
+                returnMovieCase(catalog, catalogSize);
+                break;
+            case 6:
+                deleteMovieCase(catalog, catalogSize);
+                break;
+            case 7:
+                deleteClientCase(catalog, catalogSize);
+                break;
+            case 8:
+                return 0;
+                break;
+            }
+        }
+
+        printMenu(counter); // Update the menu
     }
+
+    return 0;
 }
